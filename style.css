@@ -1,164 +1,110 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marcaz - Корпоративная система учёта</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <header>
-        <h1>Marcaz - Корпоративная система учёта</h1>
-        <nav>
-            <ul>
-                <li><a href="#teachers">Учителя</a></li>
-                <li><a href="#report">Отчёт</a></li>
-            </ul>
-        </nav>
-    </header>
-    
-    <main>
-        <section id="teachers">
-            <h2>Учителя</h2>
-            <button class="add-teacher-btn" onclick="addTeacher()">Добавить учителя</button>
-            <div id="teacher-groups"></div>
-        </section>
-        
-        <section id="report">
-            <h2>Отчёт</h2>
-            <canvas id="reportChart"></canvas>
-        </section>
-    </main>
-    
-    <script>
-        const months = Array.from({length: 10}, (_, i) => `${i + 1}-месяц`);
-        let chartInstance = null;
+body {
+    font-family: Arial, sans-serif;
+    background-color: #F5ECE3;
+    color: #5A5A5A;
+    margin: 0;
+    padding: 0;
+}
 
-        function addTeacher() {
-            let teacherName = prompt("Введите имя учителя:");
-            if (!teacherName) return;
+header {
+    background-color: #E0C9A7;
+    padding: 15px;
+    text-align: center;
+    color: #5A5A5A;
+    font-size: 24px;
+    font-weight: bold;
+}
 
-            let teacherDiv = document.createElement("div");
-            teacherDiv.classList.add("teacher");
-            teacherDiv.innerHTML = `<h3>${teacherName}</h3>
-                <button class='add-group-btn' onclick="addGroup(this.parentNode)">Добавить группу</button>
-                <button class='delete-btn small-btn' onclick="deleteTeacher(this.parentNode)">Удалить учителя</button>
-                <div class='groups'></div>`;
-            document.getElementById("teacher-groups").appendChild(teacherDiv);
-        }
+nav ul {
+    list-style: none;
+    padding: 0;
+    text-align: center;
+}
 
-        function deleteTeacher(teacherDiv) {
-            teacherDiv.remove();
-        }
+nav ul li {
+    display: inline;
+    margin: 0 15px;
+}
 
-        function addGroup(teacherDiv) {
-            let groupName = prompt("Введите название группы:");
-            if (!groupName) return;
+nav ul li a {
+    text-decoration: none;
+    color: #7D8C63;
+    font-size: 18px;
+    font-weight: bold;
+}
 
-            let groupDiv = document.createElement("div");
-            groupDiv.classList.add("group");
-            groupDiv.innerHTML = `<h4>${groupName}</h4>
-                <button class='add-student-btn' onclick="addStudent(this.parentNode)">Добавить ученицу</button>
-                <button class='delete-btn small-btn' onclick="deleteGroup(this.parentNode)">Удалить группу</button>
-                <button class='toggle-chart-btn' onclick="toggleChart(this)">📊</button>
-                <div class='chart-container' style='display:none;'>
-                    <canvas class='group-chart'></canvas>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Имя</th>
-                            ${months.map(month => `<th>${month}</th>`).join('')}
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>`;
-            teacherDiv.querySelector(".groups").appendChild(groupDiv);
-        }
+button {
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 16px;
+    transition: 0.3s;
+}
 
-        function deleteGroup(groupDiv) {
-            groupDiv.remove();
-        }
+button:hover {
+    opacity: 0.8;
+}
 
-        function addStudent(groupDiv) {
-            let studentName = prompt("Введите имя и фамилию ученицы:");
-            if (!studentName) return;
+.add-teacher-btn {
+    background-color: #D9C2A3;
+    color: #5A5A5A;
+}
 
-            let username = prompt("Введите юзернейм ученицы в Telegram (если есть):");
-            let tr = document.createElement("tr");
-            tr.innerHTML = `<td><a href="${username ? 'https://t.me/' + username : '#'}" onclick="return checkUsername('${username}')">${studentName}</a></td>
-                ${months.map(() => `<td class='unpaid'>
-                    <button class='pay-btn' onclick='markPaid(this)'>Оплачено</button>
-                    <button class='unpay-btn' onclick='markUnpaid(this)'>Не оплачено</button>
-                </td>`).join('')}`;
-            groupDiv.querySelector("tbody").appendChild(tr);
-        }
+.add-group-btn {
+    background-color: #C8A98D;
+    color: #5A5A5A;
+}
 
-        function checkUsername(username) {
-            if (!username) {
-                alert("Юзернейм не внесён");
-                return false;
-            }
-            return true;
-        }
+.add-student-btn {
+    background-color: #A3A985;
+    color: #5A5A5A;
+}
 
-        function markPaid(button) {
-            let cell = button.parentNode;
-            cell.classList.add("paid");
-            cell.classList.remove("unpaid");
-        }
+.pay-btn, .unpay-btn {
+    color: #5A5A5A;
+    font-weight: bold;
+}
 
-        function markUnpaid(button) {
-            let cell = button.parentNode;
-            cell.classList.add("unpaid");
-            cell.classList.remove("paid");
-        }
+.paid {
+    background-color: #AFC69A !important;
+    color: #fff !important;
+}
 
-        function toggleChart(button) {
-            let chartContainer = button.nextElementSibling;
-            chartContainer.style.display = chartContainer.style.display === 'none' ? 'block' : 'none';
-            if (chartContainer.style.display === 'block') {
-                generateChart(chartContainer.querySelector('.group-chart'), button.parentNode);
-            }
-        }
+.unpaid {
+    background-color: #D98E8E !important;
+    color: #fff !important;
+}
 
-        function generateChart(canvas, groupDiv) {
-            let selectedMonth = prompt("Введите номер месяца (1-10):");
-            if (!selectedMonth || selectedMonth < 1 || selectedMonth > 10) return;
+.teacher {
+    display: inline-block;
+    width: 45%;
+    background-color: #EFE2D9;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 10px;
+}
 
-            let unpaidCells = groupDiv.querySelectorAll(`tbody tr td:nth-child(${+selectedMonth + 1}).unpaid`).length;
-            let paidCells = groupDiv.querySelectorAll(`tbody tr td:nth-child(${+selectedMonth + 1}).paid`).length;
+.group {
+    background-color: #E8D3C5;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 8px;
+}
 
-            let ctx = canvas.getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: [`${selectedMonth}-месяц Оплачено`, `${selectedMonth}-месяц Не оплачено`],
-                    datasets: [{
-                        data: [paidCells, unpaidCells],
-                        backgroundColor: ['#b3bf7d', '#C7495C']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function (tooltipItem) {
-                                    if (tooltipItem.label.includes('Не оплачено')) {
-                                        let unpaidNames = Array.from(groupDiv.querySelectorAll(`tbody tr td:nth-child(${+selectedMonth + 1}).unpaid`)).map(td => td.parentNode.firstChild.textContent);
-                                        return unpaidNames.length ? unpaidNames.join(', ') : 'Нет данных';
-                                    }
-                                    return tooltipItem.label;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-    </script>
-</body>
-</html>
+.telegram-link {
+    color: #7D8C63;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.telegram-link:hover {
+    text-decoration: underline;
+}
+
+.delete-btn {
+    background-color: #D9BBAA;
+    color: #5A5A5A;
+    font-size: 14px;
+    padding: 5px 10px;
+}
